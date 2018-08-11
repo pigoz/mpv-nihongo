@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+
+    "allowJs": false,
+    "checkJs": false,
+
+    "sourceMap": true,
+    "preserveConstEnums": true,
+    "typeRoots": ["./typings", "./node_modules/@types/"],
+    "lib": ["es2015", "es2015.collection"],
+    "importHelpers": true,
+    "strict": true,
+    "moduleResolution": "node",
+
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "removeComments": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "exclude": ["node_modules"],
+  "include": [
+    "./typings/**/*.d.ts",
+    "./src/**/*.ts"
+  ]
+}
