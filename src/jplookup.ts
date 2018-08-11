@@ -1,30 +1,50 @@
 // looks up words in the subtitle containing a kanji on a J-E dictionary
 
 const SHELL = '/bin/sh';
+const showLoading = false;
 
-const options = {
+const defaultOptions = {
   fs: 14,
   border: 1.0,
   color: 'FFFFFF',
   borderColor: '000000',
 };
 
-function handler(_prop: string, text: string) {
-  const result = lookup(text).map(
-    x => `${x.lemma} (${x.reading}) - ${x.definition}`,
-  );
+function clearass() {
+  mp.set_osd_ass(0, 0, '{}');
+}
+
+function ass(message: string, opts: Partial<typeof defaultOptions>) {
+  const options = { ...defaultOptions, ...opts };
 
   const style = [
     `{\\fs${options.fs}}`,
-    `{\\1c&${options.color}&}`,
+    `{\\1c&H${options.color}&}`,
     `{\\bord${options.border}}`,
     `{\\3c&H${options.borderColor}&}`,
   ].join('');
 
+  mp.set_osd_ass(0, 0, `${style}${message}`);
+}
+
+function handler(_prop: string, text: string) {
+  if (!text) {
+    clearass();
+    return;
+  }
+
+  if (showLoading) {
+    ass('読み込み中・・・', { fs: 10 });
+  }
+
+  const result = lookup(text).map(
+    x => `${x.lemma} (${x.reading}) - ${x.definition}`,
+  );
+
   if (result.length > 0) {
-    mp.set_osd_ass(0, 0, `${style} ${result.join('\\N')}`);
+    ass(`${result.join('\\N')}`, {});
   } else {
-    mp.set_osd_ass(0, 0, '{}');
+    clearass();
   }
 }
 
@@ -83,6 +103,17 @@ function jisho(lemma: string): string {
     .join(' – ');
 }
 
+function dict(lemma: string): string {
+  const t = mp.utils.subprocess({
+    args: ['/usr/local/bin/myougiden', '--color=no', '-t', lemma],
+  });
+  const fields = t.stdout
+    .trim()
+    .split('\n')[0]
+    .split('\t');
+  return fields[2].split('|')[0];
+}
+
 type LookupResult = {
   lemma: string;
   reading: string;
@@ -93,12 +124,13 @@ function lookup(text: string): LookupResult[] {
   return mecab(removeSpeaker(text))
     .filter((x): x is MecabPOS => x.t === 'POS')
     .filter(x => !!x.l.match(/[\u4E00-\u9FAF]/))
-    .map(x => ({ lemma: x.v[6], reading: x.v[7], definition: jisho(x.v[6]) }));
+    .map(x => ({ lemma: x.v[6], reading: x.v[7], definition: dict(x.v[6]) }));
 }
 
 function subanalyze() {
   if (active) {
     mp.unobserve_property(handler);
+    clearass();
     active = false;
   } else {
     mp.observe_property('sub-text', 'string', handler);
@@ -106,8 +138,7 @@ function subanalyze() {
   }
 }
 
-mp.add_key_binding('x', 'TOGGLE_JPLOOKUP', subanalyze);
-subanalyze();
+mp.add_key_binding('x', 'toggle', subanalyze);
 
 // call this function for testing the parsing and lookup function
 function testhandler() {
