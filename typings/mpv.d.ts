@@ -6,7 +6,9 @@ declare namespace mp {
     | string
     | number
     | boolean
-    | (string | number | boolean)[]
+    | string[]
+    | number[]
+    | boolean[]
     | { [x: string]: Value };
 
   type bytes = number;
