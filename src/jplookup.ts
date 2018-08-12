@@ -67,7 +67,10 @@ const pos = (l: string, v: string[]): MecabPOS => ({
 });
 
 function removeSpeaker(text: string): string {
-  return text.replace(/（[^（）]*\）/, '').trim();
+  return text
+    .replace(/（[^（）]*）/, '')
+    .replace(/\([^()]*\)/, '')
+    .trim();
 }
 
 function mecab(text: string): MecabResult[] {
