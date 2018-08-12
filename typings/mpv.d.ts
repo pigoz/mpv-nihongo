@@ -1,28 +1,37 @@
 declare namespace mp {
   // generic return type for functions that can fail
-  type LE<T = void> = undefined | T;
-  type Prop = string;
-  type Val = string | number | boolean;
+  type Err<T = void> = undefined | T;
+
+  type Value =
+    | string
+    | number
+    | boolean
+    | (string | number | boolean)[]
+    | { [x: string]: Value };
+
   type bytes = number;
+  type timestamp = number;
 
   function last_error(): undefined | string;
-  function command(cmd: string): LE;
-  // function commandv(...args: string[]): LE;
+  function command(cmd: string): Err;
+  function commandv(...args: string[]): Err;
   // mp.command_native(table [,def])`` (LE)
-  function get_property<T extends Val>(name: Prop): LE<T>;
-  // function get_property_osd(name [,def])`` (LE)
-  function get_property_bool(name: Prop): LE<boolean>;
-  function get_property_number(name: Prop, def: number): LE<number>;
-  function get_property_native<T extends Val>(name: Prop, def: T): LE<T>;
-  function set_property<T>(name: Prop, value: T): LE<T>;
-  function set_property_bool(name: Prop, value: boolean): LE<boolean>;
-  function set_property_number(name: Prop, value: boolean): LE<number>;
-  function set_property_native<T extends Val>(name: Prop, value: T): LE<T>;
+
+  function get_property<T extends Value>(name: Property): Err<T>;
+  function get_property_osd(name: Property): Err<string>;
+  function get_property_bool(name: Property): Err<boolean>;
+  function get_property_number(name: Property): Err<number>;
+  function get_property_native<T extends Value>(name: Property): Err<T>;
+
+  function set_property<T>(name: Property, value: T): Err<T>;
+  function set_property_bool(name: Property, value: boolean): Err<boolean>;
+  function set_property_number(name: Property, value: boolean): Err<number>;
+  function set_property_native<T extends Value>(name: Property): Err<T>;
+
   function get_time(): number;
 
   type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
-  // tslint:disable-next-line class-name
   function add_key_binding(
     key: string,
     name: string,
@@ -36,46 +45,70 @@ declare namespace mp {
   ): void;
 
   function remove_key_binding(name: string): void;
-  // mp.register_event(name, fn)``
+
+  type Event<X, B = {}> = { event: X } & B;
+  type Events = {
+    // https://mpv.io/manual/master/#lua-scripting-start-file
+    'start-file': Event<'start-file'>;
+    'end-file': Event<
+      'end-file',
+      {
+        reason: 'eof' | 'stop' | 'quit' | 'error' | 'redirect' | 'unknown';
+      }
+    >;
+    'file-loaded': Event<'file-loaded'>;
+    seek: Event<'seek'>;
+    'playback-restart': Event<'playback-restart'>;
+    idle: Event<'idle'>;
+    tick: Event<'tick'>;
+    shutdown: Event<'shutdown'>;
+    'log-message': Event<
+      'log-message',
+      { prefix: string; level: LogLevel; text: string }
+    >;
+    'video-reconfig': Event<'video-reconfig'>;
+    'audio-reconfig': Event<'audio-reconfig'>;
+  };
+
+  function register_event<K extends keyof Events>(
+    name: K,
+    handler: (event: Events[K]) => void,
+  ): void;
+
   // mp.unregister_event(fn)``
 
-  type PropertyHandler<T> = (prop: Prop, value: T) => void;
+  type PropertyHandler<T> = (prop: Property, value: T) => void;
 
   function observe_property(
-    name: Prop,
+    name: Property,
     type: 'string',
     handler: PropertyHandler<string>,
   ): void;
 
   function observe_property(
-    name: Prop,
+    name: Property,
     type: 'bool',
     handler: PropertyHandler<boolean>,
   ): void;
 
   function observe_property(
-    name: Prop,
+    name: Property,
     type: 'number',
     handler: PropertyHandler<number>,
   ): void;
 
   function observe_property(
-    name: Prop,
+    name: Property,
     type: 'native' | 'none',
-    handler: PropertyHandler<Val>,
+    handler: PropertyHandler<Value>,
   ): void;
 
   function unobserve_property(handler: PropertyHandler<any>): void;
-  // mp.get_opt(key)``
+  function get_opt(key: string): string;
   function get_script_name(): string;
   function osd_message(text: string, duration?: number): void;
   function set_osd_ass(x: number, y: number, text: string): void;
-  // mp.get_wakeup_pipe()``
   function enable_messages(level: LogLevel): void;
-  // mp.register_script_message(name, fn)``
-  // mp.unregister_script_message(name)``
-
-  // mp.add_hook(type, priority, fn)``
 
   interface Msg {
     log(level: LogLevel, msg: string): void;
@@ -90,10 +123,29 @@ declare namespace mp {
   const msg: Msg;
 
   interface Utils {
-    getcwd(): LE<string>;
-    readdir(path: string, filter: undefined | string): LE<string[]>;
+    getcwd(): Err<string>;
+    getpid(): Err<number>;
+
+    readdir(
+      path: string,
+      filter?: 'files' | 'dirs' | 'normal' | 'all',
+    ): Err<string[]>;
+
+    file_info(
+      path: string,
+    ): Err<{
+      mode: number;
+      size: bytes;
+      atime: timestamp;
+      mtime: timestamp;
+      ctime: timestamp;
+      is_file: boolean;
+      is_dir: boolean;
+    }>;
+
     split_path(path: string): string[];
     join_path(p1: string, p2: string): string;
+
     subprocess(t: {
       args: string[];
       cancellable?: boolean;
@@ -104,8 +156,15 @@ declare namespace mp {
       error: undefined | string;
       killed_by_us: boolean;
     };
+
     subprocess_detached(t: string): void;
   }
 
   const utils: Utils;
+
+  interface Options {
+    read_options(defaults: { [opt: string]: Value }, identifier?: string): void;
+  }
+
+  const options: Options;
 }
