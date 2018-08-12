@@ -110,11 +110,14 @@ function dict(lemma: string): string {
   const t = mp.utils.subprocess({
     args: ['/usr/local/bin/myougiden', '--color=no', '-t', lemma],
   });
-  const fields = t.stdout
-    .trim()
-    .split('\n')[0]
-    .split('\t');
-  return fields[2].split('|')[0];
+
+  const result: string = t.stdout.trim().split('\n')[0];
+
+  if (!result) {
+    return '–';
+  }
+
+  return result.split('\t')[2].split('|')[0];
 }
 
 type LookupResult = {
