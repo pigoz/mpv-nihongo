@@ -19,7 +19,7 @@ declare namespace mp {
   function commandv(...args: string[]): Err;
   // mp.command_native(table [,def])`` (LE)
 
-  function get_property<T extends Value>(name: Property): Err<T>;
+  function get_property<T extends Value>(name: Property): Err<string>;
   function get_property_osd(name: Property): Err<string>;
   function get_property_bool(name: Property): Err<boolean>;
   function get_property_number(name: Property): Err<number>;
