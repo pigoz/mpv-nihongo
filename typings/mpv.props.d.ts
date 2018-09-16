@@ -126,6 +126,8 @@ declare namespace mp {
     | 'sub-speed'
     | 'sub-pos'
     | 'sub-text'
+    | 'sub-start'
+    | 'sub-end'
     | 'vf'
     | 'af'
     | 'ab-loop-a'
