@@ -183,7 +183,7 @@ function sub2srs() {
   const audio = cutaudio(path, aid, start, end);
   const image = screenshot(path, start, end);
 
-  addtoanki(basename(path), start, audio, image, text.replace(/\n|\r/g, ''));
+  addtoanki(basename(path), start, audio, image, text.replace(/\n|\r/g, ' '));
 }
 
 mp.add_key_binding('b', 'sub2anki', sub2srs);
