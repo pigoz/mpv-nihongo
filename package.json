@@ -26,7 +26,8 @@
   "scripts": {
     "test": "jest",
     "build": "tsc -p . --outDir dist",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "dist": "cp dist/jplookup.js ~/dev/dotfiles/mpv/scripts/jplookup.js && cp dist/sub2srs.js ~/dev/dotfiles/mpv/scripts/sub2srs.js"
   },
   "jest": {
     "globals": {
