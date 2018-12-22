@@ -1,5 +1,8 @@
 // adds the current subtitle to an anki deck
 // needs Anki Connect add-on - https://ankiweb.net/shared/info/2055492159
+import { mecab, mfold3, MecabPOS, isKanji } from './mecab';
+import { jisho } from './jisho';
+import { toHiragana } from './kana';
 
 const AUDIO_THRESHOLD = 0.25; // 250ms
 const IMAGE_WIDTH = 480;
@@ -126,6 +129,30 @@ function addtoanki(
 ): void {
   const caudio = mp.utils.join_path(ANKI_MEDIA_COLLECTION, basename(audio));
   const cimage = mp.utils.join_path(ANKI_MEDIA_COLLECTION, basename(image));
+  const analysis = mecab(line);
+
+  const reading = analysis
+    .map(result =>
+      mfold3(
+        result,
+        () => '\n',
+        x => x.l,
+        x => ` ${x.l}[${toHiragana(x.v[7])}]`,
+      ),
+    )
+    .join('')
+    .trim();
+
+  const words: string = analysis
+    .filter((x): x is MecabPOS => x.t === 'POS')
+    .filter(isKanji)
+    .map(
+      x =>
+        `${x.l}[${toHiragana(x.v[7])}] ${jisho(x.l)
+          .replace('[', '(')
+          .replace(']', ')')}`,
+    )
+    .join('<br>');
 
   const fields = {
     Source: source,
@@ -133,6 +160,8 @@ function addtoanki(
     Sound: `[sound:${basename(audio)}]`,
     Image: `<img src="${basename(image)}" />`,
     Line: line,
+    Reading: reading,
+    Words: words,
   };
 
   ankiapi('changeDeck', { cards: [], deck: ANKI_DECK_NAME });
