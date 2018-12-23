@@ -174,10 +174,15 @@ function addtoanki(
     },
   });
 
+  const timing = 6;
+
   // move files to the collection only if we successfully called the AnkiApi
   if (res.result && !res.error) {
     mv(audio, caudio);
     mv(image, cimage);
+    mp.osd_message(`added「${line}」to Anki`, timing);
+  } else {
+    mp.osd_message('error invoking Anki API', timing);
   }
 }
 
