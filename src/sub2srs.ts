@@ -125,10 +125,11 @@ function addtoanki(
   start: number,
   audio: path,
   image: path,
-  line: string,
+  rawline: string,
 ): void {
   const caudio = mp.utils.join_path(ANKI_MEDIA_COLLECTION, basename(audio));
   const cimage = mp.utils.join_path(ANKI_MEDIA_COLLECTION, basename(image));
+  const line = rawline.replace('<', '').replace('>', '');
   const analysis = mecab(line);
 
   const reading = analysis
