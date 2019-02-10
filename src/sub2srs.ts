@@ -222,3 +222,4 @@ function sub2srs() {
 }
 
 mp.add_key_binding('b', 'sub2anki', sub2srs);
+mp.add_key_binding('GAMEPAD_BACK', 'sub2anki', sub2srs);
