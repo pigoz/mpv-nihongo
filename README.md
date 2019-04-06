@@ -1,7 +1,8 @@
 # mpv-nihongo
 
 To use git-clone this repo and run `yarn install && yarn build` to compile.
-You need to use my fork of mpv to get the current subtitle's text.
+
+You need to use mpv with my [personal patches](https://github.com/pigoz/mpv/commits/personal-fork) to get the current subtitle's timestamps for sub2srs.ts to work. I will upstream them when I'm less lazy.
 
 ## Included scripts
 
