@@ -33,7 +33,7 @@ function mktemp(extension: string) {
 
 function cutaudio(path: path, aid: number, start: number, end: number): path {
   const ss = sts(start - AUDIO_THRESHOLD);
-  const duration = sts(end - start + AUDIO_THRESHOLD);
+  const duration = sts(end - start + AUDIO_THRESHOLD * 2);
   const output = mktemp('mp3');
 
   const command = [
