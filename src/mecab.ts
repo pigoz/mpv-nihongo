@@ -1,19 +1,42 @@
 const SHELL = '/bin/sh';
 
 export type MecabEOS = { readonly t: 'EOS' };
-export type MecabPOS = {
-  readonly t: 'POS';
+export type MecabPOSIncomplete = {
+  readonly t: 'POSI';
   readonly l: string;
-  readonly v: string[];
+  readonly v: ReadonlyArray<string | undefined>;
 };
 
-type MecabResult = MecabEOS | MecabPOS;
+export type MecabPOSComplete = {
+  readonly t: 'POSC';
+  readonly l: string;
+  readonly v: ReadonlyArray<string | undefined>;
+  readonly lemma: string;
+  readonly reading: string;
+};
+
+type MecabPOS = MecabPOSIncomplete | MecabPOSComplete;
+type MecabResult = MecabEOS | MecabPOSIncomplete | MecabPOSComplete;
 
 const eos: MecabEOS = { t: 'EOS' };
-const pos = (l: string, v: string[]): MecabPOS => ({
-  t: 'POS',
+
+const posi = (l: string, v: string[]): MecabPOSIncomplete => ({
+  t: 'POSI',
   l,
   v,
+});
+
+const posc = (
+  l: string,
+  v: string[],
+  lemma: string,
+  reading: string,
+): MecabPOS => ({
+  t: 'POSC',
+  l,
+  v,
+  lemma,
+  reading,
 });
 
 export function isKanji(x: MecabPOS): boolean {
@@ -24,13 +47,13 @@ export function mfold3<T>(
   res: MecabResult,
   ifEos: (eos: MecabEOS) => T,
   ifPos: (pos: MecabPOS) => T,
-  ifPosKanji: (pos: MecabPOS) => T,
+  ifPosKanji: (pos: MecabPOSComplete) => T,
 ): T {
   if (res.t === 'EOS') {
     return ifEos(res);
   }
 
-  if (isKanji(res)) {
+  if (isKanji(res) && res.t === 'POSC') {
     return ifPosKanji(res);
   }
 
@@ -48,6 +71,12 @@ export function mecab(text: string): MecabResult[] {
       const tuple = x.split('\t');
       const l = tuple[0];
       const v = tuple[1] ? tuple[1].split(',') : [];
-      return l === 'EOS' ? eos : pos(l, v);
+      const lemma = v[6];
+      const reading = v[7];
+      return l === 'EOS'
+        ? eos
+        : lemma && reading
+          ? posc(l, v, lemma, reading)
+          : posi(l, v);
     });
 }
