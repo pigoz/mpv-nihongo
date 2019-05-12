@@ -1,5 +1,6 @@
 // looks up words in the subtitle containing a kanji on a J-E dictionary
 import { mecab, MecabPOSComplete, isKanji } from './mecab';
+import { isNotBlackListed } from './blacklist';
 import { toHiragana } from './kana';
 import { jisho } from './jisho';
 
@@ -67,6 +68,7 @@ type LookupResult = {
 
 function lookup(text: string): LookupResult[] {
   return mecab(removeSpeaker(text))
+    .filter(isNotBlackListed)
     .filter((x): x is MecabPOSComplete => x.t === 'POSC')
     .filter(isKanji)
     .map(x => ({

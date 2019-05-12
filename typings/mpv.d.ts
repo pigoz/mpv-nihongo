@@ -160,6 +160,7 @@ declare namespace mp {
     };
 
     subprocess_detached(t: string): void;
+    read_file(path: string): Err<string>;
   }
 
   const utils: Utils;

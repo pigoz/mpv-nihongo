@@ -16,7 +16,7 @@ export type MecabPOSComplete = {
 };
 
 type MecabPOS = MecabPOSIncomplete | MecabPOSComplete;
-type MecabResult = MecabEOS | MecabPOSIncomplete | MecabPOSComplete;
+export type MecabResult = MecabEOS | MecabPOSIncomplete | MecabPOSComplete;
 
 const eos: MecabEOS = { t: 'EOS' };
 

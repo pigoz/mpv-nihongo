@@ -2,6 +2,7 @@
 // needs Anki Connect add-on - https://ankiweb.net/shared/info/2055492159
 import { mecab, mfold3, MecabPOSComplete, isKanji } from './mecab';
 import { jisho } from './jisho';
+import { isNotBlackListed } from './blacklist';
 import { toHiragana } from './kana';
 
 const AUDIO_THRESHOLD = 0.25; // 250ms
@@ -148,6 +149,7 @@ function addtoanki(
   const words: string = analysis
     .filter((x): x is MecabPOSComplete => x.t === 'POSC')
     .filter(isKanji)
+    .filter(isNotBlackListed)
     .map(
       x =>
         `${x.l}[${toHiragana(x.reading)}] ${jisho(x.l)
