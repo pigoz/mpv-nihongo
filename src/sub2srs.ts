@@ -150,12 +150,15 @@ function addtoanki(
     .filter((x): x is MecabPOSComplete => x.t === 'POSC')
     .filter(isKanji)
     .filter(isNotBlackListed)
-    .map(
-      x =>
-        `${x.l}[${toHiragana(x.reading)}] ${jisho(x.l)
-          .replace('[', '(')
-          .replace(']', ')')}`,
-    )
+    .map(x => {
+      const jr = jisho(x.l);
+      if (!jr) {
+        return '';
+      }
+      const reading = jr.lemmaReading || toHiragana(x.reading);
+      const definition = jr.definition.replace('[', '(').replace(']', ')');
+      return `${x.l}[${reading}] ${definition}`;
+    })
     .join('<br>');
 
   const fields = {

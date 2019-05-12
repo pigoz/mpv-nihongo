@@ -71,11 +71,20 @@ function lookup(text: string): LookupResult[] {
     .filter(isNotBlackListed)
     .filter((x): x is MecabPOSComplete => x.t === 'POSC')
     .filter(isKanji)
-    .map(x => ({
-      lemma: x.lemma,
-      reading: toHiragana(x.reading),
-      definition: jisho(x.lemma),
-    }));
+    .map(x => {
+      const jr = jisho(x.lemma);
+      return jr
+        ? {
+            lemma: x.lemma,
+            reading: jr.lemmaReading,
+            definition: jr.definition,
+          }
+        : {
+            lemma: x.lemma,
+            reading: toHiragana(x.reading),
+            definition: '',
+          };
+    });
 }
 
 function subanalyze() {

@@ -16,7 +16,12 @@ export function jishoslow(lemma: string): string {
     .join(' – ');
 }
 
-export function jisho(lemma: string): string {
+type JishoResult = {
+  definition: string;
+  lemmaReading: string;
+};
+
+export function jisho(lemma: string): JishoResult | undefined {
   const t = mp.utils.subprocess({
     args: ['/usr/local/bin/myougiden', '--color=no', '-t', lemma],
   });
@@ -24,8 +29,13 @@ export function jisho(lemma: string): string {
   const result: string = t.stdout.trim().split('\n')[0];
 
   if (!result) {
-    return '–';
+    return;
   }
 
-  return result.split('\t')[2].split('|')[0];
+  const parts = result.split('\t');
+
+  return {
+    definition: parts[2].split('|')[0],
+    lemmaReading: parts[0],
+  };
 }
