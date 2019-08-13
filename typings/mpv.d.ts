@@ -6,7 +6,7 @@ declare namespace mp {
     | string
     | number
     | boolean
-    | string[]
+    | Array<string | { [x: string]: Value }>
     | number[]
     | boolean[]
     | { [x: string]: Value };

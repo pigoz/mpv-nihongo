@@ -25,9 +25,9 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "parcel build src/jplookup.ts src/sub2srs.ts",
+    "build": "parcel build src/jplookup.ts src/sub2srs.ts src/sublang.ts",
     "clean": "rm -rf dist",
-    "dist": "cp dist/jplookup.js ~/dev/dotfiles/mpv/scripts/jplookup.js && cp dist/sub2srs.js ~/dev/dotfiles/mpv/scripts/sub2srs.js"
+    "dist": "cp dist/jplookup.js ~/dev/dotfiles/mpv/scripts/jplookup.js && cp dist/sub2srs.js ~/dev/dotfiles/mpv/scripts/sub2srs.js  && cp dist/sublang.js ~/dev/dotfiles/mpv/scripts/sublang.js"
   },
   "jest": {
     "globals": {
