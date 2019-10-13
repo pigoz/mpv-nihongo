@@ -199,17 +199,12 @@ function basename(path: string) {
 }
 
 function sub2srs() {
-  const text = mp.get_property('sub-text');
+  const text = mp.get_property('sub-text') || '';
   const path = mp.get_property('path');
   const aid = mp.get_property_number('aid') || 1;
 
   if (!path) {
     mp.msg.warn('no path available');
-    return;
-  }
-
-  if (!text) {
-    mp.msg.warn('no subtitle is focused');
     return;
   }
 
@@ -227,5 +222,37 @@ function sub2srs() {
   addtoanki(basename(path), start, audio, image, text.replace(/\n|\r/g, ' '));
 }
 
-mp.add_key_binding('b', 'sub2anki', sub2srs);
+function sub2srs2() {
+  const path = mp.get_property('path');
+  const aid = mp.get_property_number('aid') || 1;
+
+  if (!path) {
+    mp.msg.warn('no path available');
+    return;
+  }
+
+  const text1 = mp.get_property('sub-text') || '';
+  const start = mp.get_property_number('sub-start');
+
+  mp.commandv('sub-seek', '1');
+
+  setTimeout(() => {
+    const text2 = mp.get_property('sub-text') || '';
+    const end = mp.get_property_number('sub-end');
+
+    if (!start || !end) {
+      mp.msg.warn('cannot retrieve sub timings');
+      return;
+    }
+
+    const audio = cutaudio(path, aid, start, end);
+    const image = screenshot(path, start, end);
+    const text = [text1, text2].join('　');
+
+    addtoanki(basename(path), start, audio, image, text.replace(/\n|\r/g, ' '));
+  }, 100);
+}
+
+mp.add_key_binding('b', 'sub2srs', sub2srs);
+mp.add_key_binding('B', 'sub2srs2', sub2srs2);
 mp.add_key_binding('GAMEPAD_BACK', 'sub2anki', sub2srs);
