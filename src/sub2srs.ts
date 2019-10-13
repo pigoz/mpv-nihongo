@@ -198,46 +198,22 @@ function basename(path: string) {
   return x[x.length - 1];
 }
 
-function sub2srs() {
-  const text = mp.get_property('sub-text') || '';
+function sub2srs(n: number) {
   const path = mp.get_property('path');
   const aid = mp.get_property_number('aid') || 1;
+  const parts: string[] = [];
 
-  if (!path) {
-    mp.msg.warn('no path available');
-    return;
-  }
-
-  const start = mp.get_property_number('sub-start');
-  const end = mp.get_property_number('sub-end');
-
-  if (!start || !end) {
-    mp.msg.warn('cannot retrieve sub timings');
-    return;
-  }
-
-  const audio = cutaudio(path, aid, start, end);
-  const image = screenshot(path, start, end);
-
-  addtoanki(basename(path), start, audio, image, text.replace(/\n|\r/g, ' '));
-}
-
-function sub2srs2() {
-  const path = mp.get_property('path');
-  const aid = mp.get_property_number('aid') || 1;
-
-  if (!path) {
-    mp.msg.warn('no path available');
-    return;
-  }
-
-  const text1 = mp.get_property('sub-text') || '';
+  parts.push(mp.get_property('sub-text') || '');
   const start = mp.get_property_number('sub-start');
 
-  mp.commandv('sub-seek', '1');
+  function done() {
+    message(`done`);
 
-  setTimeout(() => {
-    const text2 = mp.get_property('sub-text') || '';
+    if (!path) {
+      mp.msg.warn('no path available');
+      return;
+    }
+
     const end = mp.get_property_number('sub-end');
 
     if (!start || !end) {
@@ -247,12 +223,65 @@ function sub2srs2() {
 
     const audio = cutaudio(path, aid, start, end);
     const image = screenshot(path, start, end);
-    const text = [text1, text2].join('　');
+    const text = parts.join('-');
 
     addtoanki(basename(path), start, audio, image, text.replace(/\n|\r/g, ' '));
-  }, 100);
+  }
+
+  function loop(cb: () => void) {
+    mp.set_property_bool('pause', true);
+    mp.commandv('sub-seek', '1');
+
+    setTimeout(() => {
+      parts.push(mp.get_property('sub-text') || '');
+      cb();
+    }, 500);
+  }
+
+  let fns = [done];
+  for (let i = 1; i < n; i++) {
+    fns[i] = () => loop(fns[i - 1]);
+  }
+  fns[n - 1]();
 }
 
-mp.add_key_binding('b', 'sub2srs', sub2srs);
-mp.add_key_binding('B', 'sub2srs2', sub2srs2);
-mp.add_key_binding('GAMEPAD_BACK', 'sub2anki', sub2srs);
+function message(s: string, timing?: number) {
+  mp.osd_message('sub2srs: ' + s, timing);
+  mp.msg.warn(s);
+}
+
+function sub2srsN() {
+  message('how many contiguous subs? [0..9]', 9999);
+
+  const name = (n: number) => `sub2srsN${n}`;
+  const handler = (n: number) => () => {
+    teardown();
+    if (n === 0) {
+      message(`exiting modal mode`);
+      return;
+    }
+    message(`processing ${n} contiguous subs`);
+    sub2srs(n);
+  };
+
+  function setup() {
+    for (let i = 0; i < 10; i++) {
+      mp.add_forced_key_binding(i.toString(), name(i), handler(i));
+    }
+  }
+
+  function teardown() {
+    for (let i = 0; i < 10; i++) {
+      mp.remove_key_binding(name(i));
+    }
+  }
+
+  setup();
+}
+
+function sub2srs1() {
+  sub2srs(1);
+}
+
+mp.add_key_binding('b', 'sub2srs', sub2srsN);
+mp.add_key_binding('GAMEPAD_BACK', 'sub2srs1', sub2srs1);
