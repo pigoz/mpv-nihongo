@@ -9,7 +9,14 @@ function some<T>(a: T[], fn: (el: T) => boolean) {
   return false;
 }
 
-const t = mp.utils.read_file('~/mpv-blacklist.txt') || '';
+const t = (() => {
+  try {
+    return mp.utils.read_file('~/mpv-blacklist.txt');
+  } catch (e) {
+    return '';
+  }
+})();
+
 const bl = t.trim().split('\n');
 
 export function isNotBlackListed(r: MecabResult): boolean {
