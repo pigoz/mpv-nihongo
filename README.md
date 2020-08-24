@@ -1,3 +1,7 @@
+## NOTE
+
+I moved my efforts to [lat](https://github.com/pigoz/lat), this project is unmaintened
+
 # mpv-nihongo
 
 To use git-clone this repo and run `yarn install && yarn build` to compile.
